@@ -17,13 +17,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{username}:{password}@loc
 app.jinja_env.filters['nl2br'] = nl2br
 db = SQLAlchemy(app)
 
-# Create A Model For Table
-class BlogPosts(db.Model):
-    __tablename__ = 'blogposts'
-    id = db.Column(db.Integer, primary_key=True)
-    blog_title = db.Column(db.String(1000))
-    blog_description = db.Column(db.String(6000))
-
 
 #Создаем сущности.
 class Author(db.Model):
