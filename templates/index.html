@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Мой сайт</title>
+    <!-- <link rel="stylesheet" href="../CSS/index.css"> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/index.css') }}">
+</head>
+<body>
+<header>
+    <div class="site-header box-shadow">
+        <a class="ms-3 fs-2 fw-bolder">Убежище_для_психики</a>
+        <div>
+            <a class="me-3">Вход</a>
+            <a> | </a>
+            <a href="{{ url_for('registration') }}" class="me-3">Регистрация</a>
+        </div>
+    </div>
+</header>
+<div>
+
+</div>
+</body>
+</html>

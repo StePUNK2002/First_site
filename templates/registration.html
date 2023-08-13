@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Мой сайт</title>
+    <!--<link rel="stylesheet" href="../CSS/registration.css">-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/registration.css') }}">
+</head>
+<body>
+<header>
+    <div class="site-header box-shadow">
+        <a class="ms-3 fs-2 fw-bolder">Убежище_для_психики</a>
+        <div>
+            <a class="me-3">Вход</a>
+        </div>
+    </div>
+</header>
+<div class="center-container" style="margin: 50px 0;">
+    <div class="form-container">
+        <form action="{{ url_for('registration') }}" method="POST" enctype="multipart/form-data">
+            <label for="firstName">Имя:</label>
+            <input type="text" id="firstName" name="firstName" required>
+
+            <label for="lastName">Фамилия:</label>
+            <input type="text" id="lastName" name="lastName" required>
+
+            <label for="middleName">Отчество:</label>
+            <input type="text" id="middleName" name="middleName">
+
+            <label for="login">Логин:</label>
+            <input type="text" id="login" name="login" required>
+
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="confirmPassword">Повторите пароль:</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required>
+
+            <!-- Вывод сообщения об ошибке -->
+            {% if error %}
+            <p class="error-message">{{ error }}</p>
+            {% endif %}
+
+            <label for="about">О себе:</label>
+            <textarea id="about" name="about" rows="4"></textarea>
+
+            <div class="file-input">
+                <input type="file" id="image" name="image" accept="image/*">
+                <label for="image">Выберите изображение профиля</label>
+            </div>
+            <button type="submit">Отправить</button>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>
