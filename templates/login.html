@@ -6,23 +6,16 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='CSS/login.css') }}">
 </head>
 <body>
-    <header>
-  <div class="site-header box-shadow">
-    <a class="ms-3 fs-2 fw-bolder">Убежище_для_психики</a>
-    <div>
-      <a class="me-3">Регистрация</a>
-    </div>
-  </div>
-</header>
-    <div class="container">
-        <div class="login-container">
+
+<div class="container">
+    <div class="login-container">
         <h2>Авторизация</h2>
-        <form>
-            <input type="text" placeholder="Логин" required>
-            <input type="password" placeholder="Пароль" required>
+        <form method="POST" action="/login">
+            <input type="text" name="login" placeholder="Логин" required>
+            <input type="password" name="password" placeholder="Пароль" required>
             <button type="submit">Войти</button>
         </form>
-  </div>
     </div>
+</div>
 </body>
 </html>

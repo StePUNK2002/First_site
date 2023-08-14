@@ -2,22 +2,55 @@
 <html>
 <head>
     <title>Мой сайт</title>
-    <!-- <link rel="stylesheet" href="../CSS/index.css"> -->
+    <!--<link rel="stylesheet" href="../static/CSS/index.css">-->
     <link rel="stylesheet" href="{{ url_for('static', filename='CSS/index.css') }}">
 </head>
 <body>
 <header>
     <div class="site-header box-shadow">
-        <a class="ms-3 fs-2 fw-bolder">Убежище_для_психики</a>
+        <a href="{{ url_for('index') }}" class="ms-3 fs-2 fw-bolder">Убежище_для_психики</a>
         <div>
-            <a class="me-3">Вход</a>
+            {% if is_be %}
+            <div class="site-header box-shadow">
+                <div class="user-info-container">
+                    <div class="avatar">
+                        <img src="{{ avatar_path}}">
+                    </div>
+                    <a class="me-3">{{nickname}} </a>
+                </div>
+                <div class="logout-container">
+                    <a> | </a>
+                    <a class="me-3">Выход</a>
+                </div>
+            </div>
+            {% else %}
+            {% if is_login is not true and is_registration is not true %}
+            <a href="{{ url_for('login') }}" class="me-3">Вход</a>
             <a> | </a>
             <a href="{{ url_for('registration') }}" class="me-3">Регистрация</a>
+            {% elif is_login and is_registration is not true %}
+            <a href="{{ url_for('registration') }}" class="me-3">Регистрация</a>
+            {% elif is_login is not true and is_registration %}
+            <a href="{{ url_for('login') }}" class="me-3">Вход</a>
+            {% endif %}
+            {% endif %}
+
         </div>
     </div>
 </header>
 <div>
-
+    {% if show_banner %}
+    <div class="huge-banner">
+        <h1>Ошибка. Проверьте поля!!!</h1>
+        <p>В логине и пароле должна быть латиница и только одно слово.</p>
+    </div>
+    {% endif %}
+    {% if is_login %}
+    {% include 'login.html' %}
+    {% endif %}
+    {% if is_registration %}
+    {% include 'registration.html' %}
+    {% endif %}
 </div>
 </body>
 </html>
