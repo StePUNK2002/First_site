@@ -12,16 +12,6 @@
     <h1>Такой логин уже есть</h1>
 </div>
 {% endif %}
-{% if show_banner %}
-<div class="huge-banner">
-    <h1>Ошибка. Проверьте поля!!!</h1>
-    <p>В логине и пароле должна быть латиница и только одно слово.</p>
-    <p>У пароля и логина первый символ - заглавная буква.</p>
-    <p>Поля Пароль и Повторите пароль должны совпадать.</p>
-    <p>Длина логина и пароля - минимум 6 символов.</p>
-    <p>Пароль должен быть из латиницы и цифр.</p>
-</div>
-{% endif %}
 <div class="center-container" style="margin: 50px 0;">
     <div class="form-container">
         <form action="{{ url_for('registration') }}" method="POST" enctype="multipart/form-data">
