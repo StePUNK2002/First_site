@@ -30,7 +30,7 @@
                             <p style="margin: 0px 10px;">Дата: {{post.post_date|datetimeformat}}</p>
                         </div>
                     </div>
-                    <p class="me-3">{{post.text}}</p>
+                    <p class="me-3">{{post.text|nl2br|safe}}</p>
                     {% if post.images %}
                     {% for image in post.images %}
                     <img class="post-image" src="{{ url_for('static', filename='images/' + image.path) }}">
@@ -41,8 +41,8 @@
                             <div class="user-info-container">
                                 <a href="{{ url_for('like') }}">&#129293;</a>
                                 {% if post.author.login == nickname%}
-                                <a style="margin-left: 15px;" href="{{ url_for('edit_post') }}">&#128221;</a>
-                                <a style="margin-left: 15px;" href="{{ url_for('delete_post', post_id_delete=post.id) }}">&#128465;</a>
+                                <a style="margin-left: 15px;" href="{{ url_for('edit_post', post_id_edit=post.id, post_title=post.title,post_text=post.text) }}">&#128221;</a>
+                                <a style="margin-left: 15px;" href="{{ url_for('delete_post', post_id_delete=post.id) }}">&#x274C;</a>
                                 {% endif %}
                                 <p style="margin: 0px 10px; background-color: #4285B4;">Лайки: </p>
                                 <p>{{post.likes}}</p>

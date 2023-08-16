@@ -12,7 +12,8 @@ def nl2br(value):
 
 def datetimeformat(value, format='%d-%m-%Y'):
     return value.strftime(format)
-# TODO Слияние image and post.
+# TODO Сделать кастом для изображений постов с удалением файлов(необязателно).
+# TODO Сделать лайки.
 app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = 'thisissecret'
 # our database uri
@@ -27,11 +28,17 @@ is_login = False
 is_registration = False
 is_be = False
 add_post = False
-is_edit = False
+edit_post = False
 folder = os.path.join('static', 'avatars')
+folder_image_post = os.path.join('static', 'images')
 path = os.path.join(folder, "default_user.jpg")
 nickname = ''
+image_avatar = ''
 
+
+post_title_vedro = ''
+post_text_vedro = ''
+post_id_vedro = -1
 
 def check_login_password(login):
     pattern = r'^[a-zA-Z][a-zA-Z0-9]{5,}$'
@@ -101,18 +108,30 @@ def index():
     global is_login
     global is_registration
     global add_post
+    global edit_post
+    global post_id_vedro
+    edit_post = False
     is_login = False
     is_registration = False
     add_post = False
     posts = Post().query.all()
+    if post_id_vedro != -1:
+        edit_post = True
+        print("yes")
+        post_id_vedro = -1
+        return render_template('index.html', is_login=is_login, is_registration=is_registration, is_be=is_be,
+                               avatar_path=path, nickname=nickname, add_post=add_post, post_title=post_title_vedro,post_text=post_text_vedro, edit_post=edit_post)
+    edit_post = False
     return render_template('index.html', is_login=is_login, is_registration=is_registration, is_be=is_be,
-                           avatar_path=path, nickname=nickname, add_post=add_post, posts=posts)
+                           avatar_path=path, nickname=nickname, add_post=add_post, posts=posts, edit_post=edit_post)
 
 
 @app.route('/registration', methods=['GET', 'POST'])
 def registration():
     show_banner = False
     duplicate_login = False
+    global edit_post
+    edit_post = False
     global is_be
     global is_login
     global is_registration
@@ -174,6 +193,8 @@ def login():
     global is_login
     global is_registration
     global nickname
+    global edit_post
+    edit_post = False
     if request.method == 'POST':
         login = request.form.get('login')
         password = request.form.get('password')
@@ -192,6 +213,8 @@ def login():
                 path = os.path.join(folder, user.avatar)
                 nickname = user.login
                 posts = Post().query.all()
+                global image_avatar
+                image_avatar = path
                 return render_template('index.html', is_login=is_login, is_registration=is_registration, is_be=is_be,
                                        avatar_path=path, nickname=user.login, posts=posts)
             else:
@@ -230,6 +253,8 @@ def login():
 
 @app.route('/add_post', methods=['GET', 'POST'])
 def add_post():
+    global edit_post
+    edit_post = False
     global is_be
     global is_login
     global is_registration
@@ -249,10 +274,22 @@ def add_post():
         db.session.commit()
         image_for_post = request.files['image']
         if image_for_post:
+            '''
+            filename = secure_filename(image.filename)
+            file_extension = os.path.splitext(filename)[1]
+            random_filename = str(uuid.uuid4()) + file_extension
+            random_filename = secure_filename(random_filename)
+            avatar_folder = 'static/avatars'  # Относительный путь к папке "avatar"
+            image.save(os.path.join(avatar_folder, random_filename))
+            avatar = random_filename
+            '''
             filename = secure_filename(image_for_post.filename)
+            file_extension = os.path.splitext(filename)[1]
+            random_filename = str(uuid.uuid4()) + file_extension
+            random_filename = secure_filename(random_filename)
             image_folder = 'static/images'
-            image_for_post.save(os.path.join(image_folder, filename))
-            post_image = secure_filename(image_for_post.filename)
+            image_for_post.save(os.path.join(image_folder, random_filename))
+            post_image = random_filename
             new_image = Image(path=post_image, post_id=new_post.id)
             db.session.add(new_image)
             db.session.commit()
@@ -267,6 +304,8 @@ def add_post():
 
 @app.route('/exit', methods=['GET'])
 def exit():
+    global edit_post
+    edit_post = False
     global is_be
     global is_login
     global is_registration
@@ -278,6 +317,8 @@ def exit():
     return render_template('index.html', is_login=is_login, is_registration=is_registration, add_post=add_post)
 @app.route('/like', methods=['GET', 'POST'])
 def like():
+    global edit_post
+    edit_post = False
     global is_be
     global is_login
     global is_registration
@@ -288,26 +329,35 @@ def like():
     posts = Post().query.all()
     return render_template('index.html', is_login=is_login, is_registration=is_registration, is_be=is_be,
                            avatar_path=path, nickname=nickname, add_post=add_post, posts=posts)
-@app.route('/edit_post', methods=['GET', 'POST'])
-def edit_post():
-    global is_edit
-    is_edit = True
-    posts = Post().query.all()
-    return render_template('index.html', is_login=is_login, is_registration=is_registration, is_be=is_be,
-                           avatar_path=path, nickname=nickname, add_post=add_post, posts=posts)
+@app.route('/edit_post/<int:post_id_edit>/<string:post_title>/<string:post_text>', methods=['GET', 'POST'])
+def edit_post(post_id_edit, post_title, post_text):
+    global edit_post
+    edit_post = True
+    global post_title_vedro
+    global post_text_vedro
+    global post_id_vedro
+    post_title_vedro = post_title
+    post_text_vedro = post_text
+    post_id_vedro = post_id_edit
+    return redirect(url_for('index'))
+@app.route('/editing_post', methods=['GET', 'POST'])
+def editing_post():
+
+    return redirect(url_for('index'))
 @app.route('/delete_post/<int:post_id_delete>', methods=['POST','GET'])
 def delete_post(post_id_delete):
-    if request.method == "GET":
-        print(post_id_delete)
-        delete_statement = delete(Post).where(Post.id == post_id_delete)
-        image_for_delete = delete(Image).where(Image.post_id == post_id_delete)
-        db.session.execute(image_for_delete)
-        db.session.execute(delete_statement)
-        db.session.commit()
-    posts = Post().query.all()
-    print(posts)
-    return render_template('index.html', is_login=is_login, is_registration=is_registration, is_be=is_be,
-                           avatar_path=path, nickname=nickname, posts=posts)
+    print(post_id_delete)
+    delete_statement = delete(Post).where(Post.id == post_id_delete)
+    image_for_delete = delete(Image).where(Image.post_id == post_id_delete)
+    path_image_for_delete = Image().query.filter_by(post_id=post_id_delete).first().path
+    full_path = os.path.join(folder_image_post, path_image_for_delete)
+    if os.path.exists(full_path):
+        # Удаляем изображение
+        os.remove(full_path)
+    db.session.execute(image_for_delete)
+    db.session.execute(delete_statement)
+    db.session.commit()
+    return redirect(url_for('index'))
 def Test():
     with app.app_context():
         db.create_all()  # <--- create db object.

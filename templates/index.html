@@ -15,7 +15,7 @@
                 <div class="user-info-container">
                     <a href="{{ url_for('add_post') }}" class="me-3">Добавить пост</a>
                     <div class="avatar">
-                        <img src="{{ avatar_path}}">
+                        <img src="{{ avatar_path}}" alt="">
                     </div>
                     <a class="me-3">{{nickname}} </a>
                 </div>
@@ -88,6 +88,9 @@
     {% endif %}
     {% if is_be %}
     {% include 'post.html' %}
+    {% endif %}
+    {% if edit_post %}
+    {% include 'edit_post.html' %}
     {% endif %}
 
 </div>
