@@ -39,7 +39,7 @@
                     <div class="title">
                         <div class="site-header box-shadow">
                             <div class="user-info-container">
-                                <a href="{{ url_for('like') }}">&#129293;</a>
+                                <a href="{{ url_for('like', post_id_like=post.id) }}">&#129293;</a>
                                 {% if post.author.login == nickname%}
                                 <a style="margin-left: 15px;" href="{{ url_for('edit_post', post_id_edit=post.id, post_title=post.title,post_text=post.text) }}">&#128221;</a>
                                 <a style="margin-left: 15px;" href="{{ url_for('delete_post', post_id_delete=post.id) }}">&#x274C;</a>

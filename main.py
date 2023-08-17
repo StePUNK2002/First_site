@@ -24,6 +24,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{username}:{password}@loc
 app.jinja_env.filters['nl2br'] = nl2br
 app.jinja_env.filters['datetimeformat'] = datetimeformat
 db = SQLAlchemy(app)
+#TODO Заменить на сессии
+#session.get('post_id_vedro')
 is_login = False
 is_registration = False
 is_be = False
@@ -34,11 +36,13 @@ folder_image_post = os.path.join('static', 'images')
 path = os.path.join(folder, "default_user.jpg")
 nickname = ''
 image_avatar = ''
+user_id = -1
 
 
 post_title_vedro = ''
 post_text_vedro = ''
 post_id_vedro = -1
+post_id_vedro_2 = -1
 
 def check_login_password(login):
     pattern = r'^[a-zA-Z][a-zA-Z0-9]{5,}$'
@@ -205,6 +209,7 @@ def login():
                 global is_be
                 global is_login
                 global is_registration
+                global user_id
                 is_registration = False
                 is_login = False
                 is_be = True
@@ -212,6 +217,7 @@ def login():
                 print(user.avatar)
                 path = os.path.join(folder, user.avatar)
                 nickname = user.login
+                user_id = user.id
                 posts = Post().query.all()
                 global image_avatar
                 image_avatar = path
@@ -274,15 +280,7 @@ def add_post():
         db.session.commit()
         image_for_post = request.files['image']
         if image_for_post:
-            '''
-            filename = secure_filename(image.filename)
-            file_extension = os.path.splitext(filename)[1]
-            random_filename = str(uuid.uuid4()) + file_extension
-            random_filename = secure_filename(random_filename)
-            avatar_folder = 'static/avatars'  # Относительный путь к папке "avatar"
-            image.save(os.path.join(avatar_folder, random_filename))
-            avatar = random_filename
-            '''
+
             filename = secure_filename(image_for_post.filename)
             file_extension = os.path.splitext(filename)[1]
             random_filename = str(uuid.uuid4()) + file_extension
@@ -315,8 +313,8 @@ def exit():
     is_registration = False
     add_post = False
     return render_template('index.html', is_login=is_login, is_registration=is_registration, add_post=add_post)
-@app.route('/like', methods=['GET', 'POST'])
-def like():
+@app.route('/like/<int:post_id_like>', methods=['GET', 'POST'])
+def like(post_id_like):
     global edit_post
     edit_post = False
     global is_be
@@ -326,9 +324,25 @@ def like():
     is_login = False
     is_registration = False
     add_post = False
-    posts = Post().query.all()
-    return render_template('index.html', is_login=is_login, is_registration=is_registration, is_be=is_be,
-                           avatar_path=path, nickname=nickname, add_post=add_post, posts=posts)
+    ids = Like.query.with_entities(Like.author_id).filter(Like.post_id == post_id_like).all()  # Query all the logins from the Author table
+    id_list = [id[0] for id in ids]
+    print(id_list)
+    if user_id in id_list:
+        print("Лайк есть")
+        edit_like_post = Post.query.filter_by(id=post_id_like).first()
+        edit_like_post.likes = edit_like_post.likes - 1
+        delete_like = delete(Like).where(Like.author_id == user_id, Like.post_id == post_id_like)
+        db.session.execute(delete_like)
+        db.session.commit()
+    else:
+        print("Лайка нету")
+        create_like = Like(author_id=user_id, post_id=post_id_like)
+        edit_like_post = Post.query.filter_by(id=post_id_like).first()
+        edit_like_post.likes = edit_like_post.likes + 1
+        db.session.add(create_like)
+        db.session.commit()
+    return redirect(url_for('index'))
+
 @app.route('/edit_post/<int:post_id_edit>/<string:post_title>/<string:post_text>', methods=['GET', 'POST'])
 def edit_post(post_id_edit, post_title, post_text):
     global edit_post
@@ -336,17 +350,38 @@ def edit_post(post_id_edit, post_title, post_text):
     global post_title_vedro
     global post_text_vedro
     global post_id_vedro
+    global post_id_vedro_2
     post_title_vedro = post_title
     post_text_vedro = post_text
     post_id_vedro = post_id_edit
+    post_id_vedro_2 = post_id_vedro
     return redirect(url_for('index'))
 @app.route('/editing_post', methods=['GET', 'POST'])
 def editing_post():
-
+    title = request.form['post-heading']
+    text = request.form['post-content']
+    image_for_post = request.files['image']
+    global post_id_vedro
+    if image_for_post:
+        past_image =  Image.query.filter_by(post_id=post_id_vedro_2).first()
+        filename = secure_filename(image_for_post.filename)
+        file_extension = os.path.splitext(filename)[1]
+        random_filename = str(uuid.uuid4()) + file_extension
+        random_filename = secure_filename(random_filename)
+        image_folder = 'static/images'
+        image_for_post.save(os.path.join(image_folder, random_filename))
+        post_image = random_filename
+        past_image.path = post_image
+        db.session.commit()
+    post = Post.query.filter_by(id=post_id_vedro_2).first()
+    post.title = title
+    post.text = text
+    db.session.commit()
+    print(post)
     return redirect(url_for('index'))
 @app.route('/delete_post/<int:post_id_delete>', methods=['POST','GET'])
 def delete_post(post_id_delete):
-    print(post_id_delete)
+    likes_for_delet = delete(Like).where(Like.post_id == post_id_delete)
     delete_statement = delete(Post).where(Post.id == post_id_delete)
     image_for_delete = delete(Image).where(Image.post_id == post_id_delete)
     path_image_for_delete = Image().query.filter_by(post_id=post_id_delete).first().path
@@ -355,12 +390,14 @@ def delete_post(post_id_delete):
         # Удаляем изображение
         os.remove(full_path)
     db.session.execute(image_for_delete)
+    db.session.execute(likes_for_delet)
     db.session.execute(delete_statement)
     db.session.commit()
     return redirect(url_for('index'))
 def Test():
     with app.app_context():
         db.create_all()  # <--- create db object.
+
         posts = Author.query.all()
         print(posts)
 
