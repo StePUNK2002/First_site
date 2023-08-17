@@ -16,7 +16,6 @@ def datetimeformat(value, format='%d-%m-%Y'):
 # TODO Сделать лайки.
 app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = 'thisissecret'
-# our database uri
 username = "newuser"
 password = "password"
 dbname = "test"
@@ -35,7 +34,6 @@ folder = os.path.join('static', 'avatars')
 folder_image_post = os.path.join('static', 'images')
 path = os.path.join(folder, "default_user.jpg")
 nickname = ''
-image_avatar = ''
 user_id = -1
 
 
@@ -363,16 +361,34 @@ def editing_post():
     image_for_post = request.files['image']
     global post_id_vedro
     if image_for_post:
-        past_image =  Image.query.filter_by(post_id=post_id_vedro_2).first()
-        filename = secure_filename(image_for_post.filename)
-        file_extension = os.path.splitext(filename)[1]
-        random_filename = str(uuid.uuid4()) + file_extension
-        random_filename = secure_filename(random_filename)
-        image_folder = 'static/images'
-        image_for_post.save(os.path.join(image_folder, random_filename))
-        post_image = random_filename
-        past_image.path = post_image
-        db.session.commit()
+        if image_for_post:
+            past_image = Image.query.filter_by(post_id=post_id_vedro_2).first()
+            if past_image == None:
+                filename = secure_filename(image_for_post.filename)
+                file_extension = os.path.splitext(filename)[1]
+                random_filename = str(uuid.uuid4()) + file_extension
+                random_filename = secure_filename(random_filename)
+                image_folder = 'static/images'
+                image_for_post.save(os.path.join(image_folder, random_filename))
+                post_image = random_filename
+                new_image = Image(path=post_image, post_id=post_id_vedro_2)
+                db.session.add(new_image)
+                db.session.commit()
+            else:
+                path_image_for_delete = Image().query.filter_by(post_id=post_id_vedro_2).first().path
+                full_path = os.path.join(folder_image_post, path_image_for_delete)
+                if os.path.exists(full_path):
+                    # Удаляем изображение
+                    os.remove(full_path)
+                filename = secure_filename(image_for_post.filename)
+                file_extension = os.path.splitext(filename)[1]
+                random_filename = str(uuid.uuid4()) + file_extension
+                random_filename = secure_filename(random_filename)
+                image_folder = 'static/images'
+                image_for_post.save(os.path.join(image_folder, random_filename))
+                post_image = random_filename
+                past_image.path = post_image
+                db.session.commit()
     post = Post.query.filter_by(id=post_id_vedro_2).first()
     post.title = title
     post.text = text
@@ -384,12 +400,15 @@ def delete_post(post_id_delete):
     likes_for_delet = delete(Like).where(Like.post_id == post_id_delete)
     delete_statement = delete(Post).where(Post.id == post_id_delete)
     image_for_delete = delete(Image).where(Image.post_id == post_id_delete)
-    path_image_for_delete = Image().query.filter_by(post_id=post_id_delete).first().path
-    full_path = os.path.join(folder_image_post, path_image_for_delete)
-    if os.path.exists(full_path):
-        # Удаляем изображение
-        os.remove(full_path)
-    db.session.execute(image_for_delete)
+    try:
+        path_image_for_delete = Image().query.filter_by(post_id=post_id_delete).first().path
+        full_path = os.path.join(folder_image_post, path_image_for_delete)
+        if os.path.exists(full_path):
+            # Удаляем изображение
+            os.remove(full_path)
+        db.session.execute(image_for_delete)
+    except:
+        pass
     db.session.execute(likes_for_delet)
     db.session.execute(delete_statement)
     db.session.commit()
@@ -405,8 +424,8 @@ def Test():
 def Server():
     with app.app_context():
         db.create_all()  # <--- create db object.
-    app.run(debug=True)
-    # app.run(debug=False)
+    #app.run(debug=True)
+    app.run(debug=False)
 
 
 if __name__ == '__main__':
