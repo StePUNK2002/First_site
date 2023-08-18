@@ -11,5 +11,6 @@ RUN pip install -r requirements.txt
 # Копируем код приложения внутрь контейнера
 COPY . .
 
-# Прописываем команду для запуска Python приложения
-CMD [ "python", "main.py" ]
+ENV FLASK_APP=app
+
+

@@ -19,7 +19,9 @@ app.config['SECRET_KEY'] = 'thisissecret'
 username = "newuser"
 password = "password"
 dbname = "test"
-app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{username}:{password}@localhost:5432/{dbname}"
+#Название контейнера в докере
+db_host = "db"
+app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{username}:{password}@{db_host}:5432/{dbname}"
 app.jinja_env.filters['nl2br'] = nl2br
 app.jinja_env.filters['datetimeformat'] = datetimeformat
 db = SQLAlchemy(app)
@@ -70,7 +72,7 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     author_id = db.Column(db.Integer, db.ForeignKey('authors.id'))
     author = db.relationship('Author', backref='posts')
-    post_date = db.Column(db.Date)
+    post_date = db.Column(db.DateTime)
     title = db.Column(db.String(120))
     text = db.Column(db.String(140))
     likes = db.Column(db.Integer)
