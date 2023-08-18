@@ -342,7 +342,7 @@ def like(post_id_like):
         db.session.execute(delete_like)
         db.session.commit()
     else:
-        print("Лайка нету")
+        print("Лайка нет")
         create_like = Like(author_id=user_id, post_id=post_id_like)
         edit_like_post = Post.query.filter_by(id=post_id_like).first()
         edit_like_post.likes = edit_like_post.likes + 1
