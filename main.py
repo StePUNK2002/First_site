@@ -5,6 +5,7 @@ import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from sqlalchemy import delete
+from sqlalchemy import desc
 import uuid
 
 def nl2br(value):
@@ -118,7 +119,6 @@ def index():
     is_login = False
     is_registration = False
     add_post = False
-    from sqlalchemy import desc
 
     posts = (
         db.session.query(Post)
@@ -140,13 +140,11 @@ def index():
 @app.route('/registration', methods=['GET', 'POST'])
 def registration():
     show_banner = False
-    duplicate_login = False
     global edit_post
     edit_post = False
     global is_be
     global is_login
     global is_registration
-    in_bd = False
     succes = False
     if request.method == 'POST':
         # Обработка загруженного изображения
@@ -225,7 +223,11 @@ def login():
                 path = os.path.join(folder, user.avatar)
                 nickname = user.login
                 user_id = user.id
-                posts = Post().query.all()
+                posts = (
+                    db.session.query(Post)
+                        .order_by(desc(Post.id))
+                        .all()
+                )
                 global image_avatar
                 image_avatar = path
                 return render_template('index.html', is_login=is_login, is_registration=is_registration, is_be=is_be,
@@ -256,7 +258,6 @@ def login():
                 .join(Author, Post.author_id == Author.id)
                 .all()
         )
-
         return render_template('index.html', is_login=is_login, is_registration=is_registration, is_be=is_be,
                                avatar_path=f'../{path}', posts=posts)
     else:
@@ -274,7 +275,6 @@ def add_post():
     global add_post
     is_registration = False
     is_login = False
-    added = False
     add_post = True
     if request.method == "POST":
         user_id = Author.query.filter_by(login=nickname).first().id
