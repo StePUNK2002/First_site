@@ -118,7 +118,14 @@ def index():
     is_login = False
     is_registration = False
     add_post = False
-    posts = Post().query.all()
+    from sqlalchemy import desc
+
+    posts = (
+        db.session.query(Post)
+            .order_by(desc(Post.id))
+            .all()
+    )
+
     if post_id_vedro != -1:
         edit_post = True
         print("yes")
