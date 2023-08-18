@@ -415,17 +415,11 @@ def delete_post(post_id_delete):
     db.session.execute(delete_statement)
     db.session.commit()
     return redirect(url_for('index'))
-def Test():
-    with app.app_context():
-        db.create_all()  # <--- create db object.
-
-        posts = Author.query.all()
-        print(posts)
 
 
 def Server():
     with app.app_context():
-        db.create_all()  # <--- create db object.
+        db.create_all()
     #app.run(debug=True)
     app.run(debug=False)
 
