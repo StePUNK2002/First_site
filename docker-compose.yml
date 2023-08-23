@@ -8,11 +8,12 @@ services:
       POSTGRES_PASSWORD: "password"
     volumes:
       - ./data:/var/lib/postgresql/data
+      - ./init-scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: pg_isready -U newuser -d test
       interval: 10s
-      timeout: 3s
-      retries: 3
+      timeout: 5s
+      retries: 10
     ports:
       - "5432:5432"
   app:
